@@ -74,14 +74,80 @@ public class AppointmentController {
     }
 
     private void scheduleAppointment() {
-        // Existing logic
-    }
 
-    private void rescheduleAppointment() {
-        // Existing logic
-    }
+		AppointmentFormDialog formDialog = new AppointmentFormDialog();
 
-    private void cancelAppointment() {
-        // Existing logic
+		formDialog.setVisible(true);
+
+
+
+		Appointment newAppointment = formDialog.getAppointment();
+
+		if (newAppointment != null) {
+
+			appointments.add(newAppointment);
+
+			saveAppointments();
+
+			updateTable();
+
+		}
+
+
+
+	}
+
+
+
+	private void rescheduleAppointment() {
+
+		int selectedRow = view.getAppointmentTable().getSelectedRow();
+
+		if (selectedRow != -1) {
+
+			String newTime = JOptionPane.showInputDialog(view.getAppointmentTable(), "Enter new time:");
+
+			String newDate = JOptionPane.showInputDialog(view.getAppointmentTable(), "Enter new date:");
+
+			if (newTime != null) {
+
+				appointments.get(selectedRow).setAppointmentTime(newTime);
+
+				saveAppointments();
+
+				updateTable();
+
+			}
+
+			if (newDate != null) {
+
+				appointments.get(selectedRow).setAppointmentDate(newDate);
+
+				saveAppointments();
+
+				updateTable();
+
+			}
+
+		}
+
+	}
+
+
+
+	private void cancelAppointment() {
+
+		int selectedRow = view.getAppointmentTable().getSelectedRow();
+
+		if (selectedRow != -1) {
+
+			appointments.remove(selectedRow);
+
+			saveAppointments();
+
+			updateTable();
+
+		}
+
     }
 }
