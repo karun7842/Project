@@ -1,21 +1,11 @@
-package com.hospitalInformationSystem.AppointmentSchedulingSystem.view;
-
-import java.awt.BorderLayout;
-import java.awt.Font;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JTextField;
 
 public class AppointmentView {
     private JFrame frame;
     private JTable appointmentTable;
     private DefaultTableModel tableModel;
-    private JButton viewButton, scheduleButton, rescheduleButton, cancelButton;
+    private JButton viewButton, scheduleButton, rescheduleButton, cancelButton, resetButton;
+    private JTextField filterMrdField, filterDoctorField, filterSpecialityField;
 
     public AppointmentView() {
         frame = new JFrame("Appointment Scheduling System");
@@ -28,29 +18,48 @@ public class AppointmentView {
         frame.add(titleLabel, BorderLayout.NORTH);
 
         setupTable();
+        setupFilters();
         setupButtons();
     }
 
     private void setupTable() {
-        String[] columns = { "Patient Name", "MRD ID", "Contact Info", "Doctor Name","Consultation fee","Speciality","AppointmentDate","Appointment Time" };
+        String[] columns = { "Patient Name", "MRD ID", "Contact Info", "Doctor Name", "Consultation fee", 
+                             "Speciality", "Appointment Date", "Appointment Time" };
         tableModel = new DefaultTableModel(columns, 0);
         appointmentTable = new JTable(tableModel);
-        appointmentTable.setVisible(false); 
-        
+        appointmentTable.setVisible(false);
+
         frame.add(new JScrollPane(appointmentTable), BorderLayout.CENTER);
+    }
+
+    private void setupFilters() {
+        JPanel filterPanel = new JPanel();
+        filterMrdField = new JTextField(10);
+        filterDoctorField = new JTextField(10);
+        filterSpecialityField = new JTextField(10);
+
+        filterPanel.add(new JLabel("Filter by MRD ID:"));
+        filterPanel.add(filterMrdField);
+        filterPanel.add(new JLabel("Filter by Doctor:"));
+        filterPanel.add(filterDoctorField);
+        filterPanel.add(new JLabel("Filter by Speciality:"));
+        filterPanel.add(filterSpecialityField);
+
+        frame.add(filterPanel, BorderLayout.NORTH);
     }
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        
+
         scheduleButton = new JButton("Add appointment");
         rescheduleButton = new JButton("Reschedule");
         cancelButton = new JButton("Cancel");
+        resetButton = new JButton("Reset");
 
-        
         buttonPanel.add(scheduleButton);
         buttonPanel.add(rescheduleButton);
         buttonPanel.add(cancelButton);
+        buttonPanel.add(resetButton);
 
         frame.add(buttonPanel, BorderLayout.SOUTH);
     }
@@ -81,5 +90,21 @@ public class AppointmentView {
 
     public JButton getCancelButton() {
         return cancelButton;
+    }
+
+    public JButton getResetButton() {
+        return resetButton;
+    }
+
+    public JTextField getFilterMrdField() {
+        return filterMrdField;
+    }
+
+    public JTextField getFilterDoctorField() {
+        return filterDoctorField;
+    }
+
+    public JTextField getFilterSpecialityField() {
+        return filterSpecialityField;
     }
 }
