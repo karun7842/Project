@@ -1,23 +1,191 @@
-formPanel.add(new JLabel("Appointment Date:"));
-appointmentDateChooser = new JDateChooser();
-formPanel.add(appointmentDateChooser);
+public class AppointmentFormDialog extends JDialog {
+    JComboBox<Patient> mriIdComboBox;
+    private JComboBox<String> departmentComboBox, doctorNameComboBox, availableSlotsComboBox;
+    private JComboBox<String> specializationComboBox;
+    private JTextField patientNameField, patientPhoneField, patientEmailField;
+    private JDateChooser appointmentDateChooser;
+    private JSpinner appointmentTimeSpinner;
+    private JButton submitButton, cancelButton;
+    private Appointment appointment;
 
-formPanel.add(new JLabel("Appointment Time:"));
-appointmentTimeSpinner = new JSpinner(new SpinnerDateModel());
-JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(appointmentTimeSpinner, "HH:mm");
-appointmentTimeSpinner.setEditor(timeEditor);
-appointmentTimeSpinner.setValue(new java.util.Date());
-formPanel.add(appointmentTimeSpinner);
+    private Doctor doctor;
+    private ArrayList<Doctor> doctors;
+    private ArrayList<Patient> patients;
+    Set<String> specializationArray = new HashSet<>();
+    Set<String> doctorsSet = new HashSet<>();
+    DefaultComboBoxModel<String> specialComboBoxModel = new DefaultComboBoxModel<>();
+    DefaultComboBoxModel<String> doctorComboBoxModel = new DefaultComboBoxModel<>();
+    DefaultComboBoxModel<String> emptyModel = new DefaultComboBoxModel<>();
+    Set<String> departments = new HashSet<>();
 
+    public AppointmentFormDialog() {
+        setTitle("Schedule Appointment");
+        setModal(true);
+        setSize(600, 450);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
 
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setLayout(new BorderLayout(10, 10));
 
-///////
-LocalDate appointmentDate = appointmentDateChooser.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-java.util.Date appointmentTime = (java.util.Date) appointmentTimeSpinner.getValue();
+        JPanel formPanel = new JPanel(new GridLayout(12, 2, 10, 10));
+        mainPanel.add(formPanel, BorderLayout.CENTER);
 
-if (appointmentDate == null || appointmentTime == null) {
-    JOptionPane.showMessageDialog(this, "Appointment date and time are required", "Error", JOptionPane.ERROR_MESSAGE);
-    return;
+        patients = AppointmentController.loadPatients();
+        doctors = AppointmentController.loadDoctors();
+
+        // MRI ID
+        formPanel.add(new JLabel("MRI ID:"));
+        mriIdComboBox = new JComboBox<>(patients.toArray(new Patient[0]));
+        formPanel.add(mriIdComboBox);
+
+        // Patient Details
+        formPanel.add(new JLabel("Patient Name:"));
+        patientNameField = new JTextField();
+        formPanel.add(patientNameField);
+
+        formPanel.add(new JLabel("Patient Phone:"));
+        patientPhoneField = new JTextField();
+        formPanel.add(patientPhoneField);
+
+        formPanel.add(new JLabel("Patient Email:"));
+        patientEmailField = new JTextField();
+        formPanel.add(patientEmailField);
+
+        formPanel.add(new JSeparator());
+        formPanel.add(new JSeparator());
+
+        // Department
+        formPanel.add(new JLabel("Department:"));
+        for (Doctor doctor : doctors) {
+            departments.add(doctor.getDepartment());
+        }
+        departmentComboBox = new JComboBox<>(departments.toArray(new String[0]));
+        formPanel.add(departmentComboBox);
+
+        // Specialization
+        formPanel.add(new JLabel("Specialization:"));
+        specializationComboBox = new JComboBox<>();
+        formPanel.add(specializationComboBox);
+
+        // Doctor Name
+        formPanel.add(new JLabel("Doctor Name:"));
+        doctorNameComboBox = new JComboBox<>();
+        formPanel.add(doctorNameComboBox);
+
+        // Appointment Date
+        formPanel.add(new JLabel("Appointment Date:"));
+        appointmentDateChooser = new JDateChooser();
+        appointmentDateChooser.setDateFormatString("yyyy-MM-dd");
+        appointmentDateChooser.setPreferredSize(new Dimension(150, 20));
+        formPanel.add(appointmentDateChooser);
+
+        // Appointment Time
+        formPanel.add(new JLabel("Appointment Time:"));
+        appointmentTimeSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(appointmentTimeSpinner, "HH:mm");
+        appointmentTimeSpinner.setEditor(timeEditor);
+        formPanel.add(appointmentTimeSpinner);
+
+        // Available Slots
+        formPanel.add(new JLabel("Schedule Assistant:"));
+        availableSlotsComboBox = new JComboBox<>(new String[] { "9:00 AM", "10:00 AM", "11:00 AM" });
+        formPanel.add(availableSlotsComboBox);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        submitButton = new JButton("Submit");
+        cancelButton = new JButton("Cancel");
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(mainPanel);
+
+        // Event Listeners
+        submitButton.addActionListener(e -> submit());
+        cancelButton.addActionListener(e -> cancel());
+
+        mriIdComboBox.addActionListener((e) -> {
+            if (mriIdComboBox.getSelectedItem() != null) {
+                Patient selectedPatient = patients.get(mriIdComboBox.getSelectedIndex());
+                patientNameField.setText(selectedPatient.getName());
+                patientEmailField.setText(selectedPatient.getEmail());
+                patientPhoneField.setText(String.valueOf(selectedPatient.getPhoneNumber()));
+            }
+        });
+
+        departmentComboBox.addActionListener((e) -> updateSpecialization());
+        specializationComboBox.addActionListener((e) -> updateDoctors());
+    }
+
+    private void updateSpecialization() {
+        specializationArray.clear();
+        specialComboBoxModel.removeAllElements();
+        specializationComboBox.setModel(specialComboBoxModel);
+
+        String selectedDepartment = (String) departmentComboBox.getSelectedItem();
+        for (Doctor doctor : doctors) {
+            if (doctor.getDepartment().equals(selectedDepartment)) {
+                specializationArray.add(doctor.getSpecialization());
+            }
+        }
+        specializationArray.forEach(specialComboBoxModel::addElement);
+    }
+
+    private void updateDoctors() {
+        doctorsSet.clear();
+        doctorComboBoxModel.removeAllElements();
+        doctorNameComboBox.setModel(doctorComboBoxModel);
+
+        String selectedSpecialization = (String) specializationComboBox.getSelectedItem();
+        for (Doctor doctor : doctors) {
+            if (doctor.getSpecialization().equals(selectedSpecialization)) {
+                doctorsSet.add(doctor.getName());
+            }
+        }
+        doctorsSet.forEach(doctorComboBoxModel::addElement);
+    }
+
+    private void submit() {
+        try {
+            String mriId = String.valueOf(mriIdComboBox.getSelectedItem());
+            String patientName = patientNameField.getText();
+            String patientPhone = patientPhoneField.getText();
+            String patientEmail = patientEmailField.getText();
+            String department = (String) departmentComboBox.getSelectedItem();
+            String doctorName = (String) doctorNameComboBox.getSelectedItem();
+            String availableSlot = (String) availableSlotsComboBox.getSelectedItem();
+            LocalDate appointmentDate = appointmentDateChooser.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+            String appointmentTime = new java.text.SimpleDateFormat("HH:mm").format(appointmentTimeSpinner.getValue());
+
+            if (patientName.isEmpty() || patientPhone.isEmpty() || patientEmail.isEmpty() || mriId == null || department == null || doctorName == null || availableSlot == null || appointmentDate == null) {
+                JOptionPane.showMessageDialog(this, "All fields are required", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Doctor doctor = new Doctor();
+            doctor.setName(doctorName);
+
+            Patient patient = new Patient();
+            patient.setName(patientName);
+            patient.setPhoneNumber(Long.parseLong(patientPhone));
+            patient.setEmail(patientEmail);
+
+            appointment = new Appointment(patient, doctor, department, availableSlot, appointmentDate, appointmentTime);
+            dispose();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cancel() {
+        appointment = null;
+        dispose();
+    }
+
+    public Appointment getAppointment() {
+        return appointment;
+    }
 }
-
-// Pass appointmentDate and appointmentTime to the Appointment object or handle as needed
