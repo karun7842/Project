@@ -3,6 +3,7 @@ package com.hospitalInformationSystem.AppointmentSchedulingSystem.view;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -133,6 +134,8 @@ public class AppointmentFormDialog extends JDialog {
 
             LocalDate appointmentDate = dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             Date appointmentTime = (Date) timeSpinner.getValue();
+            SimpleDateFormat timeFormat=new SimpleDateFormat("hh:mm a");
+            String formattedTime=timeFormat.format(appointmentTime);
 
             if (patientName.isEmpty() || patientBloodGroup.isEmpty() || patientEmail.isEmpty() || patientAddress.isEmpty()
                     || doctorName.isEmpty() || doctorContact.isEmpty() || doctorEmail.isEmpty()
@@ -151,7 +154,7 @@ public class AppointmentFormDialog extends JDialog {
             doctor.setSpecialization(doctorSpecialization);
 
             
-            appointment = new Appointment(patient, doctor, appointmentDate.toString(), appointmentTime.toString());
+            appointment = new Appointment(patient, doctor, appointmentDate.toString(),formattedTime);
             dispose();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
