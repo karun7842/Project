@@ -1,4 +1,16 @@
+package com.hospitalInformationSystem.AppointmentSchedulingSystem.view;
+
+import java.awt.BorderLayout;
+import java.awt.Font;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 public class AppointmentView {
     private JFrame frame;
@@ -24,10 +36,12 @@ public class AppointmentView {
 
     private void setupTable() {
         String[] columns = { "Patient Name", "MRD ID", "Contact Info", "Doctor Name", "Consultation fee", 
-                             "Speciality", "Appointment Date", "Appointment Time" };
+                             "Speciality", "Appointment Date", "Appointment Time","Status" };
         tableModel = new DefaultTableModel(columns, 0);
         appointmentTable = new JTable(tableModel);
-        appointmentTable.setVisible(false);
+//        appointmentTable.setVisible(false);
+
+        appointmentTable.setVisible(true);
 
         frame.add(new JScrollPane(appointmentTable), BorderLayout.CENTER);
     }
@@ -38,11 +52,11 @@ public class AppointmentView {
         filterDoctorField = new JTextField(10);
         filterSpecialityField = new JTextField(10);
 
-        filterPanel.add(new JLabel("Filter by MRD ID:"));
+        filterPanel.add(new JLabel(" MRD ID:"));
         filterPanel.add(filterMrdField);
-        filterPanel.add(new JLabel("Filter by Doctor:"));
+        filterPanel.add(new JLabel("Doctor:"));
         filterPanel.add(filterDoctorField);
-        filterPanel.add(new JLabel("Filter by Speciality:"));
+        filterPanel.add(new JLabel("Speciality:"));
         filterPanel.add(filterSpecialityField);
 
         frame.add(filterPanel, BorderLayout.NORTH);
