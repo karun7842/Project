@@ -60,6 +60,35 @@ public class AppointmentView {
         filterPanel.add(filterSpecialityField);
 
         frame.add(filterPanel, BorderLayout.NORTH);
+
+
+        private void setupFilters() {
+        JPanel filterPanel = new JPanel();
+        filterPanel.setLayout(new BorderLayout());
+        JPanel fieldsPanel = new JPanel();
+        fieldsPanel.setLayout(new GridLayout(1, 6, 10, 10));
+
+        // MRD Filter
+        JLabel mrdLabel = new JLabel("Filter by MRD ID:");
+        filterMrdField = new JTextField();
+        fieldsPanel.add(mrdLabel);
+        fieldsPanel.add(filterMrdField);
+
+        // Doctor Filter
+        JLabel doctorLabel = new JLabel("Filter by Doctor:");
+        filterDoctorField = new JTextField();
+        fieldsPanel.add(doctorLabel);
+        fieldsPanel.add(filterDoctorField);
+
+        // Speciality Filter
+        JLabel specialityLabel = new JLabel("Filter by Speciality:");
+        filterSpecialityField = new JTextField();
+        fieldsPanel.add(specialityLabel);
+        fieldsPanel.add(filterSpecialityField);
+
+        filterPanel.add(fieldsPanel, BorderLayout.NORTH);
+        frame.add(filterPanel, BorderLayout.SOUTH);
+        }
     }
 
     private void setupButtons() {
