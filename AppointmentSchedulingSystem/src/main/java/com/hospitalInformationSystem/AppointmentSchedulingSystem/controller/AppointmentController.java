@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Appointment;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Status;
 import com.hospitalInformationSystem.AppointmentSchedulingSystem.view.AppointmentFormDialog;
 import com.hospitalInformationSystem.AppointmentSchedulingSystem.view.AppointmentView;
 
@@ -21,6 +22,7 @@ public class AppointmentController {
 	private AppointmentView view;
 	private List<Appointment> filteredAppointments;
 	String filePath = "appointments.json";
+	int mrdFilter=0;
 	ObjectMapper mapper = new ObjectMapper();
 
 	public AppointmentController(AppointmentView view) {
@@ -40,6 +42,7 @@ public class AppointmentController {
 
 	public void viewAppointments() {
 		loadAppointments();
+		//System.out.println(appointments);
 		updateTable(appointments);
 	}
 
@@ -47,7 +50,8 @@ public class AppointmentController {
 		File file = new File(filePath);
 		if (file.exists()) {
 			try {
-				appointments = mapper.readValue(file, new TypeReference<List<Appointment>>() {});
+				appointments = mapper.readValue(file, new TypeReference<List<Appointment>>() {
+				});
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -63,22 +67,27 @@ public class AppointmentController {
 	}
 
 	private void updateTable(List<Appointment> listToDisplay) {
+		//System.out.println(listToDisplay);
 		DefaultTableModel model = view.getTableModel();
-		model.setRowCount(0); // Clear existing rows
+		model.setRowCount(0); 
 
-		for (Appointment a : appointments) {
+		for (Appointment a : listToDisplay) {
 			model.addRow(new Object[] { a.getPatient().getName(), a.getPatient().getTokenNumber(),
 					a.getPatient().getPhoneNumber(), a.getDoctor().getName(), a.getDoctor().getConsultationFee(),
-					a.getDoctor().getSpecialization(), a.getAppointmentDate(), a.getAppointmentTime() });
+					a.getDoctor().getSpecialization(), a.getAppointmentDate(), a.getAppointmentTime() ,a.getStatus()});
 		}
-		view.getTableModel().fireTableDataChanged();
+		model.fireTableDataChanged();
 	}
 
 	private void applyFilters() {
-		int mrdFilter = Integer.parseInt(view.getFilterMrdField().getText());
+		
+		if(!view.getFilterMrdField().getText().isEmpty()) {
+			 mrdFilter = Integer.parseInt(view.getFilterMrdField().getText());
+		}
+		
 		String doctorFilter = view.getFilterDoctorField().getText();
 		String specialityFilter = view.getFilterSpecialityField().getText();
-
+		
 		filteredAppointments = appointments.stream()
 				.filter(a -> (mrdFilter == 0 || a.getPatient().getTokenNumber() == mrdFilter)
 						&& (doctorFilter.isEmpty() || a.getDoctor().getName().equalsIgnoreCase(doctorFilter))
@@ -97,18 +106,12 @@ public class AppointmentController {
 	}
 
 	private void scheduleAppointment() {
-
 		AppointmentFormDialog formDialog = new AppointmentFormDialog();
 		formDialog.setVisible(true);
-
 		Appointment newAppointment = formDialog.getAppointment();
-
 		if (newAppointment != null) {
-
 			appointments.add(newAppointment);
-
 			saveAppointments();
-
 			updateTable(appointments);
 
 		}
@@ -116,33 +119,19 @@ public class AppointmentController {
 	}
 
 	private void rescheduleAppointment() {
-
 		int selectedRow = view.getAppointmentTable().getSelectedRow();
-
 		if (selectedRow != -1) {
-
 			String newTime = JOptionPane.showInputDialog(view.getAppointmentTable(), "Enter new time:");
-
 			String newDate = JOptionPane.showInputDialog(view.getAppointmentTable(), "Enter new date:");
-
 			if (newTime != null) {
-
 				appointments.get(selectedRow).setAppointmentTime(newTime);
-
 				saveAppointments();
-
 				updateTable(appointments);
-
 			}
-
 			if (newDate != null) {
-
 				appointments.get(selectedRow).setAppointmentDate(newDate);
-
 				saveAppointments();
-
 				updateTable(appointments);
-
 			}
 
 		}
@@ -150,19 +139,14 @@ public class AppointmentController {
 	}
 
 	private void cancelAppointment() {
-
 		int selectedRow = view.getAppointmentTable().getSelectedRow();
-
 		if (selectedRow != -1) {
-
-			appointments.remove(selectedRow);
-
+			//appointments.remove(selectedRow);
+			Appointment appointment = appointments.get(selectedRow);
+			appointment.setStatus(Status.CANCELED);
 			saveAppointments();
-
 			updateTable(appointments);
-
 		}
-
 	}
 
 }
