@@ -174,3 +174,126 @@ public class AppointmentFormDialog extends JDialog {
         return appointment;
     }
 }
+///////////////////
+package com.hospitalInformationSystem.AppointmentSchedulingSystem.view;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.swing.*;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Appointment;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Doctor;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Patient;
+
+public class AppointmentFormDialog extends JDialog {
+    private JComboBox<String> mriIdComboBox, departmentComboBox, doctorNameComboBox, availableSlotsComboBox;
+    private JTextField patientNameField, patientPhoneField, patientEmailField;
+    private JButton submitButton, cancelButton;
+    private Appointment appointment;
+
+    public AppointmentFormDialog() {
+        setTitle("Schedule Appointment");
+        setModal(true);
+        setSize(600, 400);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setLayout(new BorderLayout(10, 10));
+
+        JPanel formPanel = new JPanel(new GridLayout(10, 2, 10, 10));
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+
+        // MRI ID
+        formPanel.add(new JLabel("MRI ID:"));
+        mriIdComboBox = new JComboBox<>(new String[]{"MRI001", "MRI002", "MRI003"});
+        formPanel.add(mriIdComboBox);
+
+        // Patient Details
+        formPanel.add(new JLabel("Patient Name:"));
+        patientNameField = new JTextField();
+        formPanel.add(patientNameField);
+
+        formPanel.add(new JLabel("Patient Phone:"));
+        patientPhoneField = new JTextField();
+        formPanel.add(patientPhoneField);
+
+        formPanel.add(new JLabel("Patient Email:"));
+        patientEmailField = new JTextField();
+        formPanel.add(patientEmailField);
+
+        // Separator
+        formPanel.add(new JSeparator());
+        formPanel.add(new JSeparator());
+
+        // Department
+        formPanel.add(new JLabel("Department:"));
+        departmentComboBox = new JComboBox<>(new String[]{"Cardiology", "Neurology", "Orthopedics"});
+        formPanel.add(departmentComboBox);
+
+        // Doctor Name
+        formPanel.add(new JLabel("Doctor Name:"));
+        doctorNameComboBox = new JComboBox<>(new String[]{"Dr. Smith", "Dr. Johnson", "Dr. Williams"});
+        formPanel.add(doctorNameComboBox);
+
+        // Available Slots
+        formPanel.add(new JLabel("Available Slots:"));
+        availableSlotsComboBox = new JComboBox<>(new String[]{"9:00 AM", "10:00 AM", "11:00 AM"});
+        formPanel.add(availableSlotsComboBox);
+
+        // Submit Button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        submitButton = new JButton("Submit");
+        cancelButton = new JButton("Cancel");
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(mainPanel);
+
+        submitButton.addActionListener(e -> submit());
+        cancelButton.addActionListener(e -> cancel());
+    }
+
+    private void submit() {
+        try {
+            String mriId = (String) mriIdComboBox.getSelectedItem();
+            String patientName = patientNameField.getText();
+            String patientPhone = patientPhoneField.getText();
+            String patientEmail = patientEmailField.getText();
+            String department = (String) departmentComboBox.getSelectedItem();
+            String doctorName = (String) doctorNameComboBox.getSelectedItem();
+            String availableSlot = (String) availableSlotsComboBox.getSelectedItem();
+
+            if (patientName.isEmpty() || patientPhone.isEmpty() || patientEmail.isEmpty() || mriId == null || department == null || doctorName == null || availableSlot == null) {
+                JOptionPane.showMessageDialog(this, "All fields are required", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Doctor doctor = new Doctor();
+            doctor.setName(doctorName);
+
+            Patient patient = new Patient();
+            patient.setName(patientName);
+            patient.setPhone(Long.parseLong(patientPhone));
+            patient.setEmail(patientEmail);
+
+            appointment = new Appointment(patient, doctor, department, availableSlot);
+            dispose();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cancel() {
+        appointment = null;
+        dispose();
+    }
+
+    public Appointment getAppointment() {
+        return appointment;
+    }
+}
