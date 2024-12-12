@@ -1,85 +1,105 @@
+package com.hospitalInformationSystem.AppointmentSchedulingSystem.controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Appointment;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.view.AppointmentFormDialog;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.view.AppointmentView;
+
 public class AppointmentController {
-    private List<Appointment> appointments;
-    private AppointmentView view;
-    private List<Appointment> filteredAppointments;
+	private List<Appointment> appointments;
+	private AppointmentView view;
+	private List<Appointment> filteredAppointments;
+	String filePath = "appointments.json";
+	ObjectMapper mapper = new ObjectMapper();
 
-    public AppointmentController(AppointmentView view) {
-        this.view = view;
-        appointments = new ArrayList<>();
-        filteredAppointments = new ArrayList<>();
-        loadAppointments();
+	public AppointmentController(AppointmentView view) {
+		mapper.registerModule(new JavaTimeModule());
+		this.view = view;
+		loadAppointments();
 
-        view.getScheduleButton().addActionListener(e -> scheduleAppointment());
-        view.getRescheduleButton().addActionListener(e -> rescheduleAppointment());
-        view.getCancelButton().addActionListener(e -> cancelAppointment());
-        view.getResetButton().addActionListener(e -> resetFilters());
-        
-        view.getFilterMrdField().addActionListener(e -> applyFilters());
-        view.getFilterDoctorField().addActionListener(e -> applyFilters());
-        view.getFilterSpecialityField().addActionListener(e -> applyFilters());
-    }
+		view.getScheduleButton().addActionListener(e -> scheduleAppointment());
+		view.getRescheduleButton().addActionListener(e -> rescheduleAppointment());
+		view.getCancelButton().addActionListener(e -> cancelAppointment());
+		view.getResetButton().addActionListener(e -> resetFilters());
 
-    private void loadAppointments() {
-        File file = new File(filePath);
-        if (file.exists()) {
-            try {
-                appointments = mapper.readValue(file, new TypeReference<List<Appointment>>() {
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+		view.getFilterMrdField().addActionListener(e -> applyFilters());
+		view.getFilterDoctorField().addActionListener(e -> applyFilters());
+		view.getFilterSpecialityField().addActionListener(e -> applyFilters());
+	}
 
-    private void saveAppointments() {
-        try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), appointments);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+	public void viewAppointments() {
+		loadAppointments();
+		updateTable(appointments);
+	}
 
-    private void updateTable(List<Appointment> listToDisplay) {
-        DefaultTableModel model = view.getTableModel();
-        model.setRowCount(0); // Clear existing rows
+	private void loadAppointments() {
+		File file = new File(filePath);
+		if (file.exists()) {
+			try {
+				appointments = mapper.readValue(file, new TypeReference<List<Appointment>>() {});
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-        for (Appointment a : listToDisplay) {
-            model.addRow(new Object[] { a.getPatient().getName(), a.getPatient().getTokenNumber(),
-                    a.getPatient().getPhoneNumber(), a.getDoctor().getName(), a.getDoctor().getConsultationFee(),
-                    a.getDoctor().getSpecialization(), a.getAppointmentDate(), a.getAppointmentTime() });
-        }
-    }
+	private void saveAppointments() {
+		try {
+			mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), appointments);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-    private void applyFilters() {
-        String mrdFilter = view.getFilterMrdField().getText();
-        String doctorFilter = view.getFilterDoctorField().getText();
-        String specialityFilter = view.getFilterSpecialityField().getText();
+	private void updateTable(List<Appointment> listToDisplay) {
+		DefaultTableModel model = view.getTableModel();
+		model.setRowCount(0); // Clear existing rows
 
-        filteredAppointments = appointments.stream()
-            .filter(a -> (mrdFilter.isEmpty() || a.getPatient().getTokenNumber().equalsIgnoreCase(mrdFilter)) &&
-                         (doctorFilter.isEmpty() || a.getDoctor().getName().equalsIgnoreCase(doctorFilter)) &&
-                         (specialityFilter.isEmpty() || a.getDoctor().getSpecialization().equalsIgnoreCase(specialityFilter)))
-            .collect(Collectors.toList());
+		for (Appointment a : appointments) {
+			model.addRow(new Object[] { a.getPatient().getName(), a.getPatient().getTokenNumber(),
+					a.getPatient().getPhoneNumber(), a.getDoctor().getName(), a.getDoctor().getConsultationFee(),
+					a.getDoctor().getSpecialization(), a.getAppointmentDate(), a.getAppointmentTime() });
+		}
+		view.getTableModel().fireTableDataChanged();
+	}
 
-        updateTable(filteredAppointments);
-    }
+	private void applyFilters() {
+		int mrdFilter = Integer.parseInt(view.getFilterMrdField().getText());
+		String doctorFilter = view.getFilterDoctorField().getText();
+		String specialityFilter = view.getFilterSpecialityField().getText();
 
-    private void resetFilters() {
-        view.getFilterMrdField().setText("");
-        view.getFilterDoctorField().setText("");
-        view.getFilterSpecialityField().setText("");
-        updateTable(appointments);
-    }
+		filteredAppointments = appointments.stream()
+				.filter(a -> (mrdFilter == 0 || a.getPatient().getTokenNumber() == mrdFilter)
+						&& (doctorFilter.isEmpty() || a.getDoctor().getName().equalsIgnoreCase(doctorFilter))
+						&& (specialityFilter.isEmpty()
+								|| a.getDoctor().getSpecialization().equalsIgnoreCase(specialityFilter)))
+				.collect(Collectors.toList());
 
-    private void scheduleAppointment() {
+		updateTable(filteredAppointments);
+	}
+
+	private void resetFilters() {
+		view.getFilterMrdField().setText("");
+		view.getFilterDoctorField().setText("");
+		view.getFilterSpecialityField().setText("");
+		updateTable(appointments);
+	}
+
+	private void scheduleAppointment() {
 
 		AppointmentFormDialog formDialog = new AppointmentFormDialog();
-
 		formDialog.setVisible(true);
-
-
 
 		Appointment newAppointment = formDialog.getAppointment();
 
@@ -89,15 +109,11 @@ public class AppointmentController {
 
 			saveAppointments();
 
-			updateTable();
+			updateTable(appointments);
 
 		}
 
-
-
 	}
-
-
 
 	private void rescheduleAppointment() {
 
@@ -115,7 +131,7 @@ public class AppointmentController {
 
 				saveAppointments();
 
-				updateTable();
+				updateTable(appointments);
 
 			}
 
@@ -125,15 +141,13 @@ public class AppointmentController {
 
 				saveAppointments();
 
-				updateTable();
+				updateTable(appointments);
 
 			}
 
 		}
 
 	}
-
-
 
 	private void cancelAppointment() {
 
@@ -145,9 +159,10 @@ public class AppointmentController {
 
 			saveAppointments();
 
-			updateTable();
+			updateTable(appointments);
 
 		}
 
-    }
+	}
+
 }
