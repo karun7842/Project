@@ -1,0 +1,173 @@
+package com.hospitalInformationSystem.AppointmentSchedulingSystem.view;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
+
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Appointment;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Doctor;
+import com.hospitalInformationSystem.AppointmentSchedulingSystem.model.Patient;
+import com.toedter.calendar.JDateChooser;
+
+public class AppointmentFormDialog extends JDialog {
+    private JTextField patientNameField, patientBloodGroupField, patientPhoneField, patientEmailField, patientAddressField;
+    private JSpinner patientDobSpinner;
+    private JTextField doctorNameField, doctorContactField, doctorEmailField, doctorSpecializationField;
+    private JSpinner timeSpinner;
+    private JDateChooser dateChooser;
+    private JButton submitButton, cancelButton;
+    private Appointment appointment;
+
+    public AppointmentFormDialog() {
+        setTitle("Schedule Appointment");
+        setModal(true);
+        setSize(600, 600);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setLayout(new BorderLayout(10, 10));
+
+        JPanel formPanel = new JPanel(new GridLayout(12, 2, 10, 10));
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+
+        
+        formPanel.add(new JLabel("Patient Name:"));
+        patientNameField = new JTextField();
+        formPanel.add(patientNameField);
+
+        formPanel.add(new JLabel("Patient Date of Birth:"));
+        patientDobSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor dobEditor = new JSpinner.DateEditor(patientDobSpinner, "yyyy-MM-dd");
+        patientDobSpinner.setEditor(dobEditor);
+        formPanel.add(patientDobSpinner);
+
+        formPanel.add(new JLabel("Patient Blood Group:"));
+        patientBloodGroupField = new JTextField();
+        formPanel.add(patientBloodGroupField);
+
+        formPanel.add(new JLabel("Patient Phone:"));
+        patientPhoneField = new JTextField();
+        formPanel.add(patientPhoneField);
+
+        formPanel.add(new JLabel("Patient Email:"));
+        patientEmailField = new JTextField();
+        formPanel.add(patientEmailField);
+
+        formPanel.add(new JLabel("Patient Address:"));
+        patientAddressField = new JTextField();
+        formPanel.add(patientAddressField);
+
+       
+        formPanel.add(new JLabel("Doctor Name:"));
+        doctorNameField = new JTextField();
+        formPanel.add(doctorNameField);
+
+        formPanel.add(new JLabel("Doctor Contact:"));
+        doctorContactField = new JTextField();
+        formPanel.add(doctorContactField);
+
+        formPanel.add(new JLabel("Doctor Email:"));
+        doctorEmailField = new JTextField();
+        formPanel.add(doctorEmailField);
+
+        formPanel.add(new JLabel("Doctor Specialization:"));
+        doctorSpecializationField = new JTextField();
+        formPanel.add(doctorSpecializationField);
+
+        
+        formPanel.add(new JLabel("Appointment Date:"));
+        dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("yyyy-MM-dd");
+        formPanel.add(dateChooser);
+
+        formPanel.add(new JLabel("Appointment Time:"));
+        SpinnerDateModel timeModel = new SpinnerDateModel();
+        timeSpinner = new JSpinner(timeModel);
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "hh:mm a");
+        timeSpinner.setEditor(timeEditor);
+        formPanel.add(timeSpinner);
+
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        submitButton = new JButton("Submit");
+        cancelButton = new JButton("Cancel");
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(mainPanel);
+
+        
+        submitButton.addActionListener(e -> submit());
+        cancelButton.addActionListener(e -> cancel());
+    }
+
+    private void submit() {
+        try {
+            String patientName = patientNameField.getText();
+            LocalDate patientDob = ((Date) patientDobSpinner.getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            String patientBloodGroup = patientBloodGroupField.getText();
+            long patientPhone = Long.parseLong(patientPhoneField.getText());
+            String patientEmail = patientEmailField.getText();
+            String patientAddress = patientAddressField.getText();
+
+            String doctorName = doctorNameField.getText();
+            String doctorContact = doctorContactField.getText();
+            String doctorEmail = doctorEmailField.getText();
+            String doctorSpecialization = doctorSpecializationField.getText();
+
+            LocalDate appointmentDate = dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            Date appointmentTime = (Date) timeSpinner.getValue();
+
+            if (patientName.isEmpty() || patientBloodGroup.isEmpty() || patientEmail.isEmpty() || patientAddress.isEmpty()
+                    || doctorName.isEmpty() || doctorContact.isEmpty() || doctorEmail.isEmpty()
+                    || doctorSpecialization.isEmpty() || appointmentDate == null) {
+                JOptionPane.showMessageDialog(this, "All fields are required", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Patient patient = new Patient(patientName, patientDob, calculateAge(patientDob), patientAddress,
+                    patientEmail, patientBloodGroup, patientPhone);
+
+            Doctor doctor = new Doctor();
+            doctor.setName(doctorName);
+            doctor.setContact(doctorContact);
+            doctor.setEmail(doctorEmail);
+            doctor.setSpecialization(doctorSpecialization);
+
+            
+            appointment = new Appointment(patient, doctor, appointmentDate.toString(), appointmentTime.toString());
+            dispose();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private int calculateAge(LocalDate dob) {
+        return LocalDate.now().getYear() - dob.getYear();
+    }
+
+    private void cancel() {
+        appointment = null;
+        dispose();
+    }
+
+    public Appointment getAppointment() {
+        return appointment;
+    }
+}
