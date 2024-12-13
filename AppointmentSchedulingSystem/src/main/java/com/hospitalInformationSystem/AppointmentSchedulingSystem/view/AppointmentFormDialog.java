@@ -77,6 +77,41 @@ public class AppointmentFormDialog extends JDialog {
 
         formPanel.add(new JLabel("MRI ID:"));
         mriIdComboBox = new JComboBox<>(patients.toArray(new Patient[0]));
+        mriIdComboBox.setEditable(true);
+//        JTextField editor = (JTextField) mriIdComboBox.getEditor().getEditorComponent();
+//
+//        editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+//            @Override
+//            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+//                filterPatients();
+//            }
+//
+//            @Override
+//            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+//                filterPatients();
+//            }
+//
+//            @Override
+//            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+//                filterPatients();
+//            }
+//
+//            private void filterPatients() {
+//                String filterText = editor.getText();
+//                int num = Integer.parseInt(filterText);
+//                DefaultComboBoxModel<Patient> filteredModel = new DefaultComboBoxModel<>();
+//                for (Patient patient : patients) {
+//                    if (patient.getTokenNumber()==num) {
+//                        filteredModel.addElement(patient);
+//                    }
+//                }
+//                mriIdComboBox.setModel(filteredModel);
+//                editor.setText(filterText); // Preserve the user's input
+//                mriIdComboBox.setPopupVisible(true);
+//            }
+//        });
+//
+//        formPanel.add(mriIdComboBox);
         mriIdComboBox.setUI(new BasicComboBoxUI() {
 
 			@Override
