@@ -1,36 +1,82 @@
-formPanel.add(new JLabel("MRI ID:"));
-mriIdComboBox = new JComboBox<>(patients.toArray(new Patient[0]));
-mriIdComboBox.setEditable(true);
-JTextField editor = (JTextField) mriIdComboBox.getEditor().getEditorComponent();
+// Inside the AppointmentFormDialog class
 
-editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-    @Override
-    public void insertUpdate(javax.swing.event.DocumentEvent e) {
-        filterPatients();
-    }
+private JButton scheduleAssistantButton;
 
-    @Override
-    public void removeUpdate(javax.swing.event.DocumentEvent e) {
-        filterPatients();
-    }
+// Modify the constructor
+public AppointmentFormDialog() {
+    setTitle("Schedule Appointment");
+    setModal(true);
+    setSize(600, 500);
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    setLocationRelativeTo(null);
 
-    @Override
-    public void changedUpdate(javax.swing.event.DocumentEvent e) {
-        filterPatients();
-    }
+    JPanel mainPanel = new JPanel();
+    mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    mainPanel.setLayout(new BorderLayout(10, 10));
 
-    private void filterPatients() {
-        String filterText = editor.getText();
-        DefaultComboBoxModel<Patient> filteredModel = new DefaultComboBoxModel<>();
-        for (Patient patient : patients) {
-            if (patient.getMriId().toLowerCase().contains(filterText.toLowerCase())) {
-                filteredModel.addElement(patient);
-            }
+    JPanel formPanel = new JPanel(new GridLayout(12, 2, 10, 10));
+    mainPanel.add(formPanel, BorderLayout.CENTER);
+
+    patients = AppointmentController.loadPatients();
+    doctors = AppointmentController.loadDoctors();
+
+    // Other form components remain unchanged...
+
+    formPanel.add(new JLabel("Schedule Assistant:"));
+    scheduleAssistantButton = new JButton("Open Schedule Assistant");
+    formPanel.add(scheduleAssistantButton);
+
+    JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+    submitButton = new JButton("Submit");
+    cancelButton = new JButton("Cancel");
+    buttonPanel.add(submitButton);
+    buttonPanel.add(cancelButton);
+
+    mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+    add(mainPanel);
+
+    submitButton.addActionListener(e -> submit());
+    cancelButton.addActionListener(e -> cancel());
+
+    mriIdComboBox.addActionListener(e -> updatePatientFields());
+    departmentComboBox.addActionListener(e -> updateSpecializationComboBox());
+    specializationComboBox.addActionListener(e -> updateDoctorComboBox());
+    doctorNameComboBox.addActionListener(e -> doctorSelected());
+    scheduleAssistantButton.addActionListener(e -> openScheduleAssistant());
+}
+
+// Add a new method to handle the Schedule Assistant button
+private void openScheduleAssistant() {
+    JDialog assistantDialog = new JDialog(this, "Schedule Assistant", true);
+    assistantDialog.setSize(400, 300);
+    assistantDialog.setLocationRelativeTo(this);
+
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+    JLabel messageLabel = new JLabel("Select an available time slot:", SwingConstants.CENTER);
+    panel.add(messageLabel, BorderLayout.NORTH);
+
+    // Example list of available slots
+    String[] availableSlots = {"9:00 AM", "10:00 AM", "11:00 AM"};
+    JList<String> slotList = new JList<>(availableSlots);
+    slotList.setBorder(BorderFactory.createEtchedBorder());
+    panel.add(slotList, BorderLayout.CENTER);
+
+    JButton selectButton = new JButton("Select");
+    selectButton.addActionListener(e -> {
+        String selectedSlot = slotList.getSelectedValue();
+        if (selectedSlot != null) {
+            JOptionPane.showMessageDialog(this, "You selected: " + selectedSlot);
+            // Use the selected slot as needed (e.g., store it in a variable)
+            assistantDialog.dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a time slot.", "Warning",
+                    JOptionPane.WARNING_MESSAGE);
         }
-        mriIdComboBox.setModel(filteredModel);
-        editor.setText(filterText); // Preserve the user's input
-        mriIdComboBox.setPopupVisible(true);
-    }
-});
+    });
 
-formPanel.add(mriIdComboBox);
+    panel.add(selectButton, BorderLayout.SOUTH);
+    assistantDialog.add(panel);
+    assistantDialog.setVisible(true);
+}
