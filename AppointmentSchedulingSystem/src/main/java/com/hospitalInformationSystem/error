@@ -1,13 +1,16 @@
-// Method to open the Schedule Assistant window
 private void openScheduleAssistantWindow() {
     JDialog scheduleAssistantDialog = new JDialog(this, "Schedule Assistant", true);
     scheduleAssistantDialog.setSize(400, 300);
     scheduleAssistantDialog.setLayout(new BorderLayout());
     scheduleAssistantDialog.setLocationRelativeTo(this);
 
-    JLabel infoLabel = new JLabel("This is the Schedule Assistant window.", SwingConstants.CENTER);
-    scheduleAssistantDialog.add(infoLabel, BorderLayout.CENTER);
+    // Add content to the new window
+    JPanel contentPanel = new JPanel();
+    contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    contentPanel.add(new JLabel("Schedule Assistant functionality goes here."));
+    scheduleAssistantDialog.add(contentPanel, BorderLayout.CENTER);
 
+    // Close button for the dialog
     JButton closeButton = new JButton("Close");
     closeButton.addActionListener(e -> scheduleAssistantDialog.dispose());
     scheduleAssistantDialog.add(closeButton, BorderLayout.SOUTH);
