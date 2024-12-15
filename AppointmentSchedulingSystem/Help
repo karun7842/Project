@@ -1,0 +1,74 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TimeSlotScheduler extends JFrame {
+    private List<JButton> slotButtons = new ArrayList<>();
+
+    public TimeSlotScheduler() {
+        // Set up the frame
+        setTitle("Schedule Assistant");
+        setSize(500, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Generate time slots
+        List<String> timeSlots = generateTimeSlots(LocalTime.of(9, 0), LocalTime.of(18, 0));
+
+        // Create panel for time slots
+        JPanel slotPanel = new JPanel();
+        slotPanel.setLayout(new GridLayout(0, 4, 10, 10)); // 4 columns, dynamic rows
+
+        // Add time slot buttons
+        for (String slot : timeSlots) {
+            JButton slotButton = new JButton(slot);
+            slotButton.setBackground(Color.LIGHT_GRAY);
+            slotButton.addActionListener(new SlotSelectionHandler(slotButton));
+            slotButtons.add(slotButton);
+            slotPanel.add(slotButton);
+        }
+
+        // Add panel to the frame
+        add(slotPanel);
+
+        setVisible(true);
+    }
+
+    // Generate time slots with 15-minute intervals
+    private List<String> generateTimeSlots(LocalTime startTime, LocalTime endTime) {
+        List<String> slots = new ArrayList<>();
+        while (startTime.isBefore(endTime)) {
+            slots.add(startTime.toString());
+            startTime = startTime.plusMinutes(15);
+        }
+        return slots;
+    }
+
+    // Handle slot selection
+    private class SlotSelectionHandler implements ActionListener {
+        private JButton button;
+
+        public SlotSelectionHandler(JButton button) {
+            this.button = button;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Reset colors for all buttons
+            for (JButton btn : slotButtons) {
+                btn.setBackground(Color.LIGHT_GRAY);
+            }
+            // Highlight the selected button
+            button.setBackground(Color.GREEN);
+        }
+    }
+
+    // Main method to run the application
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(TimeSlotScheduler::new);
+    }
+}
