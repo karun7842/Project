@@ -1,74 +1,44 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
+private void openScheduleAssistantWindow() {
+    // Create a new dialog for the Schedule Assistant
+    JDialog scheduleAssistantDialog = new JDialog(this, "Schedule Assistant", true);
+    scheduleAssistantDialog.setSize(400, 300);
+    scheduleAssistantDialog.setLayout(new BorderLayout());
+    scheduleAssistantDialog.setLocationRelativeTo(this);
 
-public class TimeSlotScheduler extends JFrame {
-    private List<JButton> slotButtons = new ArrayList<>();
+    // Create panel to display time slots
+    JPanel timeSlotPanel = new JPanel();
+    timeSlotPanel.setLayout(new GridLayout(0, 1, 10, 10));  // Dynamic grid to display slots
+    timeSlotPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-    public TimeSlotScheduler() {
-        // Set up the frame
-        setTitle("Schedule Assistant");
-        setSize(500, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+    // Define the start and end time for slots (9:00 AM to 5:00 PM)
+    LocalDate currentDate = LocalDate.now();
+    String startTime = "09:00 AM";
+    String endTime = "05:00 PM";
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
 
-        // Generate time slots
-        List<String> timeSlots = generateTimeSlots(LocalTime.of(9, 0), LocalTime.of(18, 0));
+    // Convert start and end times to LocalTime for manipulation
+    LocalDate startLocalDate = currentDate.atTime(9, 0); // 9:00 AM
+    LocalDate endLocalDate = currentDate.atTime(17, 0); // 5:00 PM
 
-        // Create panel for time slots
-        JPanel slotPanel = new JPanel();
-        slotPanel.setLayout(new GridLayout(0, 4, 10, 10)); // 4 columns, dynamic rows
-
-        // Add time slot buttons
-        for (String slot : timeSlots) {
-            JButton slotButton = new JButton(slot);
-            slotButton.setBackground(Color.LIGHT_GRAY);
-            slotButton.addActionListener(new SlotSelectionHandler(slotButton));
-            slotButtons.add(slotButton);
-            slotPanel.add(slotButton);
-        }
-
-        // Add panel to the frame
-        add(slotPanel);
-
-        setVisible(true);
+    // Generate available time slots in 15-minute intervals
+    for (LocalDate time = startLocalDate; time.isBefore(endLocalDate); time = time.plusMinutes(15)) {
+        String slotTime = time.format(formatter);
+        JButton slotButton = new JButton(slotTime);
+        slotButton.addActionListener(e -> {
+            // Handle slot selection (update the appointment time or show confirmation)
+            JOptionPane.showMessageDialog(scheduleAssistantDialog, "Selected Slot: " + slotTime);
+        });
+        timeSlotPanel.add(slotButton);
     }
 
-    // Generate time slots with 15-minute intervals
-    private List<String> generateTimeSlots(LocalTime startTime, LocalTime endTime) {
-        List<String> slots = new ArrayList<>();
-        while (startTime.isBefore(endTime)) {
-            slots.add(startTime.toString());
-            startTime = startTime.plusMinutes(15);
-        }
-        return slots;
-    }
+    // Add the time slot panel to the dialog
+    scheduleAssistantDialog.add(timeSlotPanel, BorderLayout.CENTER);
 
-    // Handle slot selection
-    private class SlotSelectionHandler implements ActionListener {
-        private JButton button;
+    // Close button
+    JButton closeButton = new JButton("Close");
+    closeButton.addActionListener(e -> scheduleAssistantDialog.dispose());
+    scheduleAssistantDialog.add(closeButton, BorderLayout.SOUTH);
 
-        public SlotSelectionHandler(JButton button) {
-            this.button = button;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            // Reset colors for all buttons
-            for (JButton btn : slotButtons) {
-                btn.setBackground(Color.LIGHT_GRAY);
-            }
-            // Highlight the selected button
-            button.setBackground(Color.GREEN);
-        }
-    }
-
-    // Main method to run the application
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(TimeSlotScheduler::new);
-    }
+    // Show the schedule assistant window
+    scheduleAssistantDialog.setVisible(true);
 }
